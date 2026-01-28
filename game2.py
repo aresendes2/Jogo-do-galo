@@ -32,43 +32,55 @@ def _winner(board: list[str]) -> Optional[str]:
 
 
 def _best_ai_move(board: list[str], ai: str, human: str) -> Optional[int]:
-    """IA forte usando minimax (joga sempre o melhor possível)."""
+    """IA muito forte usando minimax clássico (impossível de ganhar)."""
 
-    def minimax(state: list[str], player: str) -> int:
+    def minimax(state: list[str], is_ai_turn: bool) -> int:
         winner = _winner(state)
         if winner == ai:
-            return 1
+            return 1   # vitória da IA
         if winner == human:
-            return -1
+            return -1  # vitória do humano
         if all(v != "" for v in state):
-            return 0
+            return 0   # empate
 
-        moves = []
-        for i, v in enumerate(state):
-            if v != "":
-                continue
-            new_state = state[:]
-            new_state[i] = player
-            score = minimax(new_state, ai if player == human else human)
-            moves.append((score, i))
-
-        if player == ai:
-            # maximizar
-            best_score = max(moves, key=lambda x: x[0])[0]
+        if is_ai_turn:
+            best = -2
+            for i, v in enumerate(state):
+                if v != "":
+                    continue
+                new_state = state[:]
+                new_state[i] = ai
+                score = minimax(new_state, False)
+                if score > best:
+                    best = score
+            return best
         else:
-            # minimizar
-            best_score = min(moves, key=lambda x: x[0])[0]
+            best = 2
+            for i, v in enumerate(state):
+                if v != "":
+                    continue
+                new_state = state[:]
+                new_state[i] = human
+                score = minimax(new_state, True)
+                if score < best:
+                    best = score
+            return best
 
-        # devolver um dos melhores movimentos (se vários, escolher aleatoriamente)
-        best_indices = [i for s, i in moves if s == best_score]
-        return best_indices[0] if player == ai else best_indices[0]
+    # escolher o melhor movimento para a IA
+    best_score = -2
+    best_move: Optional[int] = None
 
-    empty = [i for i, v in enumerate(board) if v == ""]
-    if not empty:
-        return None
+    for i, v in enumerate(board):
+        if v != "":
+            continue
+        temp = board[:]
+        temp[i] = ai
+        score = minimax(temp, False)
+        if score > best_score:
+            best_score = score
+            best_move = i
 
-    # IA é sempre 'ai' a jogar agora
-    return minimax(board[:], ai)
+    return best_move
 
 
 def open_game(main_window: tk.Tk, mode: str = "single") -> None:
